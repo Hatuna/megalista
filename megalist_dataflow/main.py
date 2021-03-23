@@ -33,6 +33,7 @@ from uploaders.google_analytics.google_analytics_data_import_uploader import Goo
 from uploaders.google_analytics.google_analytics_measurement_protocol import GoogleAnalyticsMeasurementProtocolUploaderDoFn
 from uploaders.google_analytics.google_analytics_user_list_uploader import GoogleAnalyticsUserListUploaderDoFn
 from uploaders.google_analytics.google_analytics_4_measurement_protocol import GoogleAnalytics4MeasurementProtocolUploaderDoFn
+from uploaders.google_analytics.google_analytics_enhanced_ecommerce_mp import GoogleAnalyticsEnhancedEcommMeasurementProtocolUploaderDoFn
 from uploaders.google_analytics.google_analytics_data_import_eraser import GoogleAnalyticsDataImportEraser
 from uploaders.big_query.transactional_events_results_writer import TransactionalEventsResultsWriter
 from models.execution import DestinationType
@@ -142,6 +143,17 @@ class GoogleAnalyticsMeasurementProtocolStep(MegalistaStep):
             | 'Persist results - GA measurement protocol' >> beam.ParDo(TransactionalEventsResultsWriter(self._dataflow_options.bq_ops_dataset))
         )
 
+class GoogleAnalyticsEnhancedEcomMeasurementProtocolStep(MegalistaStep):
+    def expand(self, executions):
+        return (
+            executions
+            | 'Load Data - GA Enhanced eCommerce measurement protocol' >>
+              BatchesFromExecutions(DestinationType.GA_ECOMMERCE_MEASUREMENT_PROTOCOL, 20, transactional=True)
+            | 'Upload - GA Enhanced eCommerce measurement protocol' >>
+              beam.ParDo(GoogleAnalyticsEnhancedEcommMeasurementProtocolUploaderDoFn())
+            | 'Persist results - GA Enhanced eCommerce measurement protocol' >> beam.ParDo(TransactionalEventsResultsWriter(self._dataflow_options.bq_ops_dataset))
+        )
+
 
 class GoogleAnalytics4MeasurementProtocolStep(MegalistaStep):
     def expand(self, executions):
@@ -204,6 +216,8 @@ def run(argv=None):
         executions | GoogleAnalyticsUserListStep(oauth_credentials)
         executions | GoogleAnalyticsDataImportStep(oauth_credentials)
         executions | GoogleAnalyticsMeasurementProtocolStep(
+            oauth_credentials, dataflow_options)
+        executions | GoogleAnalyticsEnhancedEcomMeasurementProtocolStep(
             oauth_credentials, dataflow_options)
         executions | GoogleAnalytics4MeasurementProtocolStep(
             oauth_credentials, dataflow_options)

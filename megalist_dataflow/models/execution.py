@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ class DestinationType(Enum):
         GA_USER_LIST_UPLOAD, \
         APPSFLYER_S2S_EVENTS, \
         GA_MEASUREMENT_PROTOCOL, \
+        GA_ECOMMERCE_MEASUREMENT_PROTOCOL, \
         GA_DATA_IMPORT, \
         GA_4_MEASUREMENT_PROTOCOL = range(12)
 
